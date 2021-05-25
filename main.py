@@ -173,10 +173,11 @@ async def flask_result_csv(uuid):
     if (isinstance(response, tuple) and response[1] != 200) or response.status_code != 200:
         return response
     result = response.get_json()
-    date = datetime.fromtimestamp(result['startTime'], timezone.utc)
+    date = datetime.fromtimestamp(result['startTime'], timezone.utc).astimezone(timezone(timedelta(hours=9)))
     si = StringIO()
     cw = csv.writer(si)
-    row = [date.astimezone(timezone(timedelta(hours=9))).isoformat()]
+    # row = [date.isoformat()]
+    row = ['{date.year}년 {date.month}월 {date.day}일'.format(date=date)]
     for rank in result['ranks']:
         row.append(rank['nickname'])
         row.append(rank['finalPoint'])
