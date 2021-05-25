@@ -1,11 +1,11 @@
 from flask import Flask, json, jsonify
 import os
-import asyncio
 import hashlib
 import hmac
 import logging
 import random
 import uuid
+from datetime import datetime, timedelta
 
 import aiohttp
 
@@ -156,7 +156,7 @@ async def flask_result(uuid):
             'roomId': head['config']['meta']['roomId'],
             'startTime': head['startTime'],
             'endTime': head['endTime'],
-            'rank': res
+            'ranks': res
         })
     except:
         return jsonify({
@@ -164,3 +164,15 @@ async def flask_result(uuid):
             'message': "???",
             'data': data
         }), 500
+
+@app.route("/uuid-csv/<uuid>")
+async def flask_result_csv(uuid):
+    response = await flask_result(uuid)
+    if (isinstance(response, tuple) and response[1] != 200) or response.status_code != 200:
+        return response
+    result = response.get_json()
+    date = datetime.fromtimestamp(result['startTime']) + timedelta(hours=9)
+    tsv = f"{date.strftime('%c')}"
+    for rank in result['ranks']:
+        tsv += f"\t{rank['nickname']}\t{rank['finalPoint']}"
+    return tsv
