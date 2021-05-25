@@ -1,11 +1,13 @@
-from flask import Flask, json, jsonify
+from flask import Flask, json, jsonify, make_response
 import os
+from io import StringIO
 import hashlib
 import hmac
 import logging
 import random
 import uuid
-from datetime import datetime, timedelta
+import csv
+from datetime import datetime, timedelta, timezone
 
 import aiohttp
 
@@ -171,8 +173,15 @@ async def flask_result_csv(uuid):
     if (isinstance(response, tuple) and response[1] != 200) or response.status_code != 200:
         return response
     result = response.get_json()
-    date = datetime.fromtimestamp(result['startTime']) + timedelta(hours=9)
-    tsv = f"{date.strftime('%c')}"
+    date = datetime.fromtimestamp(result['startTime'], timezone.utc)
+    si = StringIO()
+    cw = csv.writer(si)
+    row = [date.astimezone(timezone(timedelta(hours=9))).isoformat()]
     for rank in result['ranks']:
-        tsv += f"\t{rank['nickname']}\t{rank['finalPoint']}"
-    return tsv
+        row.append(rank['nickname'])
+        row.append(rank['finalPoint'])
+    cw.writerow(row)
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=export.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
