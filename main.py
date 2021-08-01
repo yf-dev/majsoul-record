@@ -8,6 +8,7 @@ import random
 import uuid
 import csv
 from datetime import datetime, timedelta, timezone
+import traceback
 
 import aiohttp
 
@@ -20,7 +21,8 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-MS_HOST = "https://game.maj-soul.com"
+MS_HOST = os.environ['MAJSOUL_HOST']
+CLIENT_VERSION_STRING = os.environ['MAJSOUL_CLIENT_VERSION']
 
 
 async def get_log(uuid):
@@ -32,7 +34,7 @@ async def get_log(uuid):
 
     lobby, channel = await connect()
     await login(lobby, username, password)
-
+    
     game_log = await load_and_process_game_log(lobby, uuid)
 
     await channel.close()
@@ -83,6 +85,7 @@ async def login(lobby, username, password):
     req.device.is_browser = True
     req.random_key = uuid_key
     req.gen_access_token = True
+    req.client_version_string = CLIENT_VERSION_STRING
     req.currency_platforms.append(2)
 
     res = await lobby.login(req)
@@ -99,6 +102,7 @@ async def load_and_process_game_log(lobby, uuid):
     logging.info("Loading game log")
     req = pb.ReqGameRecord()
     req.game_uuid = uuid
+    req.client_version_string = CLIENT_VERSION_STRING
     res = await lobby.fetch_game_record(req)
     return res
 
@@ -160,10 +164,10 @@ async def flask_result(uuid):
             'endTime': head['endTime'],
             'ranks': res
         })
-    except:
+    except Exception as e:
         return jsonify({
             'result': 'ERROR',
-            'message': "???",
+            'message': traceback.format_exc(),
             'data': data
         }), 500
 

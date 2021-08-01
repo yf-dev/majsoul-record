@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ms-api = "*"
+ms-api = {editable = true, git = "https://github.com/MahjongRepository/mahjong_soul_api.git"}
 flask = {extras = ["async"], version = "*"}
 gunicorn = "*"
 
