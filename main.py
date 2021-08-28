@@ -15,14 +15,13 @@ import aiohttp
 from ms.base import MSRPCChannel
 from ms.rpc import Lobby
 import ms.protocol_pb2 as pb
-from google.protobuf.json_format import MessageToJson
+from google.protobuf.json_format import Error, MessageToJson
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 MS_HOST = os.environ['MAJSOUL_HOST']
-CLIENT_VERSION_STRING = os.environ['MAJSOUL_CLIENT_VERSION']
 
 YAKU = {
     1: '멘젠쯔모',
@@ -132,10 +131,11 @@ async def get_log(uuid):
     if not username or not password:
         logging.error("Username or password cant be empty")
 
-    lobby, channel = await connect()
-    await login(lobby, username, password)
+    lobby, channel, client_version = await connect()
+
+    await login(lobby, username, password, client_version)
     
-    game_log, records = await load_and_process_game_log(lobby, uuid)
+    game_log, records = await load_and_process_game_log(lobby, uuid, client_version)
 
     await channel.close()
     return game_log, records
@@ -148,6 +148,7 @@ async def connect():
             logging.info(f"Version: {version}")
 
             version = version["version"]
+            client_version = 'web-' + version.replace('.w', '')
 
         async with session.get("{}/1/v{}/config.json".format(MS_HOST, version)) as res:
             config = await res.json()
@@ -171,10 +172,10 @@ async def connect():
     await channel.connect(MS_HOST)
     logging.info("Connection was established")
 
-    return lobby, channel
+    return lobby, channel, client_version
 
 
-async def login(lobby, username, password):
+async def login(lobby, username, password, client_version):
     logging.info("Login with username and password")
 
     uuid_key = str(uuid.uuid1())
@@ -185,7 +186,7 @@ async def login(lobby, username, password):
     req.device.is_browser = True
     req.random_key = uuid_key
     req.gen_access_token = True
-    req.client_version_string = CLIENT_VERSION_STRING
+    req.client_version_string = client_version
     req.currency_platforms.append(2)
 
     res = await lobby.login(req)
@@ -198,11 +199,11 @@ async def login(lobby, username, password):
     return True
 
 
-async def load_and_process_game_log(lobby, uuid):
+async def load_and_process_game_log(lobby, uuid, client_version):
     logging.info("Loading game log")
     req = pb.ReqGameRecord()
     req.game_uuid = uuid
-    req.client_version_string = CLIENT_VERSION_STRING
+    req.client_version_string = client_version
     res = await lobby.fetch_game_record(req)
 
     record_wrapper = pb.Wrapper()
@@ -335,7 +336,8 @@ async def flask_result(uuid):
         })
     except Exception as e:
         data['records'] = records
-        del data['data']
+        if 'data' in data:
+            del data['data']
         return jsonify({
             'result': 'ERROR',
             'message': traceback.format_exc(),
