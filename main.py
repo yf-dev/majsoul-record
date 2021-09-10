@@ -15,7 +15,7 @@ import aiohttp
 from ms.base import MSRPCChannel
 from ms.rpc import Lobby
 import ms.protocol_pb2 as pb
-from google.protobuf.json_format import Error, MessageToJson
+from google.protobuf.json_format import MessageToJson
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
@@ -219,14 +219,13 @@ async def load_and_process_game_log(lobby, uuid, client_version):
         round_record_wrapper = pb.Wrapper()
         round_record_wrapper.ParseFromString(record_action.result)
         round_record_classname = round_record_wrapper.name[4:]
-        if round_record_classname in ['RecordHule']:
-            round_record_class = getattr(pb, round_record_classname)
-            round_record = round_record_class()
-            round_record.ParseFromString(round_record_wrapper.data)
-            records.append({
-                'name': round_record_classname,
-                'data': json.loads(MessageToJson(round_record))
-            })
+        round_record_class = getattr(pb, round_record_classname)
+        round_record = round_record_class()
+        round_record.ParseFromString(round_record_wrapper.data)
+        records.append({
+            'name': round_record_classname,
+            'data': json.loads(MessageToJson(round_record))
+        })
 
     return res, records
 
@@ -244,7 +243,8 @@ async def flask_result_test(uuid):
     data = MessageToJson(game_log)
     data = json.loads(data)
     data['records'] = records
-    del data['data']
+    if 'data' in data:
+        del data['data']
     return jsonify(data)
 
 @app.route("/uuid/<uuid>")
