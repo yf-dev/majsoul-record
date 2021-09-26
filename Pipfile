@@ -11,6 +11,8 @@ gunicorn = "*"
 [dev-packages]
 black = "*"
 pre-commit = "*"
+mypy = "*"
+types-protobuf = "*"
 
 [scripts]
 server = "flask run --host 0.0.0.0 --port 5001"

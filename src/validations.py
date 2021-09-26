@@ -1,9 +1,106 @@
-def validate(data):
+from typing import Any, Dict, Optional, NewType, List, Tuple
+
+ValidationError = NewType("ValidationError", Dict[str, Any])
+
+
+def make_validation_error(code: str, message: str, data: Any = None) -> ValidationError:
+    """Make error object for validation
+
+    Args:
+        code (str): error code
+        message (str): error message
+        data (Any): invalid data
+
+    Returns:
+        ValidationError: new error object
+    """
+    return ValidationError(
+        {
+            "code": code,
+            "message": message,
+            "data": data,
+        }
+    )
+
+
+def make_invalid_value_error(
+    code: str,
+    name: str,
+    value: Any,
+    expected_value: Any,
+    expected_value_hint: str = None,
+) -> ValidationError:
+    """Make error object for invalid value
+
+    Args:
+        code (str): error code
+        name (str): name of value
+        value (Any): invalid value itself
+        expected_value (Any): expected value
+        expected_value_hint (str, optional): hint of expected value
+
+    Returns:
+        ValidationError: new error object
+    """
+    if expected_value_hint:
+        expected_value_str = f"{expected_value_hint}({str(expected_value)})"
+    else:
+        expected_value_str = str(expected_value)
+    return make_validation_error(
+        code=code,
+        message=f"Invalid {name}: {str(value)}. It should be {expected_value_str}.",
+        data=value,
+    )
+
+
+def validate_value(
+    errors: List[ValidationError],
+    code: str,
+    name: str,
+    value: Any,
+    expected_value: Any,
+    expected_value_hint: str = None,
+) -> None:
+    """Validate value
+
+    If value is invalid, error object will be added to errors.
+
+    Args:
+        errors (List[ValidationError]): list to add new error object
+        code (str): error code for error object
+        name (str): name of value
+        value (Any): value to validate
+        expected_value (Any): expected value to validate
+        expected_value_hint (str, optional): hint of expected value
+    """
+    if value != expected_value:
+        errors.append(
+            make_invalid_value_error(
+                code=code,
+                name=name,
+                value=value,
+                expected_value=expected_value,
+                expected_value_hint=expected_value_hint,
+            )
+        )
+
+
+def validate_log(data: Dict) -> Tuple[bool, List[ValidationError]]:
+    """Validate log data
+
+    Args:
+        data (Dict): [description]
+
+    Returns:
+        List[ValidationError]: [description]
+    """
     errors = []
 
     if "error" in data:
         errors.append(
-            {"code": "cannot-get-log", "message": "Cannot get game log data."}
+            make_validation_error(
+                code="cannot-get-log", message="Cannot get game log data."
+            )
         )
         return False, errors
 
@@ -11,126 +108,128 @@ def validate(data):
 
     accounts = head["accounts"]
 
-    if len(accounts) != 4:
-        errors.append(
-            {
-                "code": "invalid-player-count",
-                "message": f"Invalid player count: {len(accounts)}. It should be 4.",
-                "data": len(accounts),
-            }
-        )
+    validate_value(
+        errors=errors,
+        code="invalid-player-count",
+        name="player count",
+        value=len(accounts),
+        expected_value=4,
+    )
 
     if "roomId" not in head["config"]["meta"]:
-        errors.append({"code": "missing-room-id", "message": "roomId is missing."})
-
-    if head["config"]["category"] != 1:
         errors.append(
-            {
-                "code": "invalid-category",
-                "message": f'Invalid category: {head["config"]["category"]}. It should be Friendly Match(1)',
-                "data": head["config"]["category"],
-            }
+            make_validation_error(code="missing-room-id", message="roomId is missing.")
         )
+        return False, errors
 
-    if head["config"]["mode"]["mode"] != 2:
-        errors.append(
-            {
-                "code": "invalid-mode",
-                "message": f'Invalid mode: {head["config"]["mode"]["mode"]}. It should be 4-Player Two-Wind Match Mode(2).',
-                "data": head["config"]["mode"]["mode"],
-            }
-        )
+    validate_value(
+        errors=errors,
+        code="invalid-category",
+        name="category",
+        value=head["config"]["category"],
+        expected_value=1,
+        expected_value_hint="Friendly Match",
+    )
+
+    validate_value(
+        errors=errors,
+        code="invalid-mode",
+        name="mode",
+        value=head["config"]["mode"]["mode"],
+        expected_value=2,
+        expected_value_hint="4-Player Two-Wind Match Mode",
+    )
 
     rule = head["config"]["mode"]["detailRule"]
 
-    if "bianjietishi" in rule and rule["bianjietishi"] != True:
-        errors.append(
-            {
-                "code": "invalid-tips",
-                "message": f'Invalid tips: {rule["bianjietishi"]}. It should be True.',
-                "data": rule["bianjietishi"],
-            }
+    if "bianjietishi" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-tips",
+            name="tips",
+            value=rule["bianjietishi"],
+            expected_value=True,
         )
 
-    if "doraCount" in rule and rule["doraCount"] != 3:
-        errors.append(
-            {
-                "code": "invalid-red-dora",
-                "message": f'Invalid red dora: {rule["doraCount"]}. It should be 3.',
-                "data": rule["doraCount"],
-            }
+    if "doraCount" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-red-dora",
+            name="red dora",
+            value=rule["doraCount"],
+            expected_value=3,
         )
 
-    if "fandian" in rule and rule["fandian"] != 30000:
-        errors.append(
-            {
-                "code": "invalid-min-points-to-win",
-                "message": f'Invalid min points to win: {rule["fandian"]}. It should be 30000.',
-                "data": rule["fandian"],
-            }
+    if "fandian" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-min-points-to-win",
+            name="min points to win",
+            value=rule["fandian"],
+            expected_value=30000,
         )
 
-    if "fanfu" in rule and rule["fanfu"] != 1:
-        errors.append(
-            {
-                "code": "invalid-min-han",
-                "message": f'Invalid min han: {rule["fanfu"]}. It should be 1.',
-                "data": rule["fanfu"],
-            }
+    if "fanfu" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-min-han",
+            name="min han",
+            value=rule["fanfu"],
+            expected_value=1,
         )
 
-    if "initPoint" in rule and rule["initPoint"] != 25000:
-        errors.append(
-            {
-                "code": "invalid-starting-points",
-                "message": f'Invalid starting points: {rule["initPoint"]}. It should be 25000.',
-                "data": rule["initPoint"],
-            }
+    if "initPoint" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-starting-points",
+            name="starting points",
+            value=rule["initPoint"],
+            expected_value=25000,
         )
 
-    if "shiduan" in rule and rule["shiduan"] != 1:
-        errors.append(
-            {
-                "code": "invalid-open-tanyao",
-                "message": f'Invalid open tanyao: {rule["shiduan"]}. It should be 1.',
-                "data": rule["shiduan"],
-            }
+    if "shiduan" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-open-tanyao",
+            name="open tanyao",
+            value=rule["shiduan"],
+            expected_value=1,
         )
 
-    if "guyiMode" in rule and rule["guyiMode"] != 1:
-        errors.append(
-            {
-                "code": "invalid-local-yaku",
-                "message": f'Invalid local yaku: {rule["guyiMode"]}. It should be 0.',
-                "data": rule["guyiMode"],
-            }
+    if "guyiMode" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-local-yaku",
+            name="local yaku",
+            value=rule["guyiMode"],
+            expected_value=0,
         )
 
-    if "openHand" in rule and rule["openHand"] != 0:
-        errors.append(
-            {
-                "code": "invalid-open-hand",
-                "message": f'Invalid open hand: {rule["openHand"]}. It should be 0.',
-                "data": rule["openHand"],
-            }
+    if "openHand" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-open-hand",
+            name="open hand",
+            value=rule["openHand"],
+            expected_value=0,
         )
 
-    if "timeAdd" in rule and rule["timeAdd"] != 20:
-        errors.append(
-            {
-                "code": "invalid-thinking-time-add",
-                "message": f'Invalid thinking time(add): {rule["timeAdd"]}. It should be 20.',
-                "data": rule["timeAdd"],
-            }
+    if "timeAdd" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-thinking-time-add",
+            name="thinking time(add)",
+            value=rule["timeAdd"],
+            expected_value=20,
         )
 
-    if "timeFixed" in rule and rule["timeFixed"] != 5:
-        errors.append(
-            {
-                "code": "invalid-thinking-time-fixed",
-                "message": f'Invalid thinking time(fixed): {rule["timeFixed"]}. It should be 5.',
-                "data": rule["timeFixed"],
-            }
+    if "timeFixed" in rule:
+        validate_value(
+            errors=errors,
+            code="invalid-thinking-time-fixed",
+            name="thinking time(fixed)",
+            value=rule["timeFixed"],
+            expected_value=5,
         )
 
     return not bool(errors), errors

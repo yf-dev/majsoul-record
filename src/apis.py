@@ -2,9 +2,9 @@ from flask import Blueprint, jsonify
 from datetime import datetime, timedelta, timezone
 import traceback
 
-from src.consts import YAKU, IMPORTANT_YAKUS
+from src.consts import YAKU_MAP, IMPORTANT_YAKUS
 from src.ms_apis import get_log
-from src.validations import validate
+from src.validations import validate_log
 from src.utils import csv_response
 
 bp = Blueprint("api", __name__)
@@ -20,7 +20,7 @@ async def flask_get_raw_log(uuid):
 async def flask_get_log(uuid):
     data = await get_log(uuid)
     try:
-        is_valid, errors = validate(data)
+        is_valid, errors = validate_log(data)
         if not is_valid:
             return (
                 jsonify(
@@ -78,7 +78,7 @@ async def flask_get_log(uuid):
             if record["name"] != "RecordHule":
                 continue
             for hule in record["data"]["hules"]:
-                yakus = (YAKU[fan["id"]] for fan in hule["fans"])
+                yakus = (YAKU_MAP[fan["id"]] for fan in hule["fans"])
                 is_important = False
                 for yaku in yakus:
                     # check important yaku
