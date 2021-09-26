@@ -1,23 +1,28 @@
-from flask import Blueprint, jsonify
 from datetime import datetime, timedelta, timezone
 import traceback
+import typing as t
+
+from flask import Blueprint, jsonify
 
 from src.consts import YAKU_MAP, IMPORTANT_YAKUS
 from src.ms_apis import get_log
 from src.validations import validate_log
 from src.utils import csv_response
 
+if t.TYPE_CHECKING:
+    from flask.typing import ResponseReturnValue
+
 bp = Blueprint("api", __name__)
 
 
 @bp.route("/uuid-raw/<uuid>")
-async def flask_get_raw_log(uuid):
+async def route_uuid_raw(uuid: str) -> ResponseReturnValue:
     data = await get_log(uuid)
     return jsonify(data)
 
 
 @bp.route("/uuid/<uuid>")
-async def flask_get_log(uuid):
+async def route_uuid(uuid: str) -> ResponseReturnValue:
     data = await get_log(uuid)
     try:
         is_valid, errors = validate_log(data)
@@ -142,8 +147,8 @@ async def flask_get_log(uuid):
 
 
 @bp.route("/uuid-csv/<uuid>")
-async def flask_get_log_csv(uuid):
-    response = await flask_get_log(uuid)
+async def route_uuid_csv(uuid: str) -> ResponseReturnValue:
+    response = await route_uuid(uuid)
     if isinstance(response, tuple):
         status_code = response[1]
         response = response[0]

@@ -1,8 +1,21 @@
 from io import StringIO
 import csv
+import typing as t
 from flask import make_response
 
-def csv_response(rows):
+if t.TYPE_CHECKING:
+    from flask.wrappers import Response
+
+
+def csv_response(rows: t.Iterable) -> Response:
+    """Make rows to Flask Response
+
+    Args:
+        rows (Iterable): rows to write csv file
+
+    Returns:
+        Response: Flask Response
+    """
     si = StringIO()
     cw = csv.writer(si)
     cw.writerow(rows)

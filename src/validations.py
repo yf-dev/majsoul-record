@@ -1,9 +1,11 @@
-from typing import Any, Dict, Optional, NewType, List, Tuple
+import typing as t
 
-ValidationError = NewType("ValidationError", Dict[str, Any])
+ValidationError = t.NewType("ValidationError", t.Dict[str, t.Any])
 
 
-def make_validation_error(code: str, message: str, data: Any = None) -> ValidationError:
+def make_validation_error(
+    code: str, message: str, data: t.Any = None
+) -> ValidationError:
     """Make error object for validation
 
     Args:
@@ -26,8 +28,8 @@ def make_validation_error(code: str, message: str, data: Any = None) -> Validati
 def make_invalid_value_error(
     code: str,
     name: str,
-    value: Any,
-    expected_value: Any,
+    value: t.Any,
+    expected_value: t.Any,
     expected_value_hint: str = None,
 ) -> ValidationError:
     """Make error object for invalid value
@@ -54,11 +56,11 @@ def make_invalid_value_error(
 
 
 def validate_value(
-    errors: List[ValidationError],
+    errors: t.List[ValidationError],
     code: str,
     name: str,
-    value: Any,
-    expected_value: Any,
+    value: t.Any,
+    expected_value: t.Any,
     expected_value_hint: str = None,
 ) -> None:
     """Validate value
@@ -85,7 +87,7 @@ def validate_value(
         )
 
 
-def validate_log(data: Dict) -> Tuple[bool, List[ValidationError]]:
+def validate_log(data: t.Dict) -> t.Tuple[bool, t.List[ValidationError]]:
     """Validate log data
 
     Args:

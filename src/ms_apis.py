@@ -6,6 +6,7 @@ import logging
 import random
 import uuid
 import aiohttp
+import typing as t
 
 from ms.base import MSRPCChannel
 from ms.rpc import Lobby
@@ -15,7 +16,7 @@ from google.protobuf.json_format import MessageToJson
 MS_HOST = os.environ["MAJSOUL_HOST"]
 
 
-async def connect():
+async def connect() -> t.Tuple[Lobby, MSRPCChannel, str]:
     async with aiohttp.ClientSession() as session:
         async with session.get("{}/1/version.json".format(MS_HOST)) as res:
             version = await res.json()
@@ -49,7 +50,9 @@ async def connect():
     return lobby, channel, client_version
 
 
-async def login(lobby, username, password, client_version):
+async def login(
+    lobby: Lobby, username: str, password: str, client_version: str
+) -> bool:
     logging.info("Login with username and password")
 
     uuid_key = str(uuid.uuid1())
@@ -73,7 +76,9 @@ async def login(lobby, username, password, client_version):
     return True
 
 
-async def load_and_process_game_log(lobby, uuid, client_version):
+async def load_and_process_game_log(
+    lobby: Lobby, uuid: str, client_version: str
+) -> t.Tuple[t.Any, t.List[t.Dict]]:
     logging.info("Loading game log")
     req = pb.ReqGameRecord()
     req.game_uuid = uuid
@@ -116,7 +121,7 @@ async def load_and_process_game_log(lobby, uuid, client_version):
     return res, records
 
 
-async def get_log(uuid):
+async def get_log(uuid: str) -> t.Dict:
     username = os.environ["MAJSOUL_USERNAME"]
     password = os.environ["MAJSOUL_PASSWORD"]
 
@@ -131,8 +136,7 @@ async def get_log(uuid):
 
     await channel.close()
 
-    data = MessageToJson(game_log)
-    data = json.loads(data)
+    data = json.loads(MessageToJson(game_log))  # type: t.Dict[str, t.Any]
     if "data" in data:
         del data["data"]
 

@@ -1,3 +1,5 @@
+import typing as t
+
 YAKU_MAP = {
     1: "멘젠쯔모",
     2: "리치",
@@ -63,7 +65,7 @@ YAKU_MAP = {
     62: "대수린",
     63: "돌 위에서 삼년",
     64: "대칠성",
-}
+}  # type: t.Dict[int, str]
 
 IMPORTANT_YAKUS = [
     "천화",
@@ -96,4 +98,4 @@ IMPORTANT_YAKUS = [
     "대수린",
     "돌 위에서 삼년",
     "대칠성",
-]
+]  # type: t.List[str]
