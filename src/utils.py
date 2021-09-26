@@ -7,7 +7,7 @@ if t.TYPE_CHECKING:
     from flask.wrappers import Response
 
 
-def csv_response(rows: t.Iterable) -> Response:
+def csv_response(rows: t.Iterable) -> "Response":
     """Make rows to Flask Response
 
     Args:
