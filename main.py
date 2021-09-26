@@ -1,7 +1,6 @@
 import logging
-from flask import Flask
 
-from src.apis import bp as api_bp
+from src import create_app
 
 logging.basicConfig(
     level=logging.INFO,
@@ -9,5 +8,4 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-app = Flask(__name__)
-app.register_blueprint(api_bp)
+app = create_app()

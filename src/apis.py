@@ -17,12 +17,29 @@ bp = Blueprint("api", __name__)
 
 @bp.route("/uuid-raw/<uuid>")
 async def route_uuid_raw(uuid: str) -> "ResponseReturnValue":
+    """Serve full Majsoul log as json
+
+    Args:
+        uuid (str): uuid of Majsoul log
+
+    Returns:
+        ResponseReturnValue: full Majsoul log as json
+    """
+
     data = await get_log(uuid)
     return jsonify(data)
 
 
 @bp.route("/uuid/<uuid>")
 async def route_uuid(uuid: str) -> "ResponseReturnValue":
+    """Serve simple Majsoul log as json
+
+    Args:
+        uuid (str): uuid of Majsoul log
+
+    Returns:
+        ResponseReturnValue: simple Majsoul log as json
+    """
     data = await get_log(uuid)
     try:
         is_valid, errors = validate_log(data)
@@ -148,6 +165,14 @@ async def route_uuid(uuid: str) -> "ResponseReturnValue":
 
 @bp.route("/uuid-csv/<uuid>")
 async def route_uuid_csv(uuid: str) -> "ResponseReturnValue":
+    """Serve simple Majsoul log as csv
+
+    Args:
+        uuid (str): uuid of Majsoul log
+
+    Returns:
+        ResponseReturnValue: simple Majsoul log as csv
+    """
     response = await route_uuid(uuid)
     if isinstance(response, tuple):
         status_code = response[1]
