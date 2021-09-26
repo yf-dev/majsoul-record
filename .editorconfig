@@ -1,0 +1,27 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = unset
+charset = utf-8
+
+[*.json]
+indent_size = 2
+insert_final_newline = unset
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+[*.lock]
+indent_size = unset
+indent_style = unset
+max_line_length = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset

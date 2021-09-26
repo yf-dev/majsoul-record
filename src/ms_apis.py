@@ -1,4 +1,3 @@
-
 import os
 import json
 import hashlib
@@ -13,7 +12,7 @@ from ms.rpc import Lobby
 import ms.protocol_pb2 as pb
 from google.protobuf.json_format import MessageToJson
 
-MS_HOST = os.environ['MAJSOUL_HOST']
+MS_HOST = os.environ["MAJSOUL_HOST"]
 
 
 async def connect():
@@ -23,7 +22,7 @@ async def connect():
             logging.info(f"Version: {version}")
 
             version = version["version"]
-            client_version = 'web-' + version.replace('.w', '')
+            client_version = "web-" + version.replace(".w", "")
 
         async with session.get("{}/1/v{}/config.json".format(MS_HOST, version)) as res:
             config = await res.json()
@@ -94,8 +93,12 @@ async def load_and_process_game_log(lobby, uuid, client_version):
         record_items = game_details.records
     else:
         # new format
-        record_items = (action.result for action in game_details.actions if hasattr(action, 'result') and len(action.result) > 0)
-    
+        record_items = (
+            action.result
+            for action in game_details.actions
+            if hasattr(action, "result") and len(action.result) > 0
+        )
+
     for item in record_items:
         round_record_wrapper = pb.Wrapper()
         round_record_wrapper.ParseFromString(item)
@@ -103,17 +106,19 @@ async def load_and_process_game_log(lobby, uuid, client_version):
         round_record_class = getattr(pb, round_record_classname)
         round_record = round_record_class()
         round_record.ParseFromString(round_record_wrapper.data)
-        records.append({
-            'name': round_record_classname,
-            'data': json.loads(MessageToJson(round_record))
-        })
+        records.append(
+            {
+                "name": round_record_classname,
+                "data": json.loads(MessageToJson(round_record)),
+            }
+        )
 
     return res, records
 
 
 async def get_log(uuid):
-    username = os.environ['MAJSOUL_USERNAME']
-    password = os.environ['MAJSOUL_PASSWORD']
+    username = os.environ["MAJSOUL_USERNAME"]
+    password = os.environ["MAJSOUL_PASSWORD"]
 
     if not username or not password:
         logging.error("Username or password cant be empty")
@@ -121,17 +126,17 @@ async def get_log(uuid):
     lobby, channel, client_version = await connect()
 
     await login(lobby, username, password, client_version)
-    
+
     game_log, records = await load_and_process_game_log(lobby, uuid, client_version)
 
     await channel.close()
 
     data = MessageToJson(game_log)
     data = json.loads(data)
-    if 'data' in data:
-        del data['data']
+    if "data" in data:
+        del data["data"]
 
-    if 'error' not in data:
-        data['records'] = records
+    if "error" not in data:
+        data["records"] = records
 
     return data
