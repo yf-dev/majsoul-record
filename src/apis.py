@@ -67,24 +67,30 @@ async def route_uuid(uuid: str) -> "ResponseReturnValue":
                 seat = result["seat"]
                 for player in head["accounts"]:
                     if "seat" in player and player["seat"] == seat:
+                        final_point = (
+                            result["partPoint1"] if "partPoint1" in result else 0
+                        )
                         player_ranks.append(
                             {
                                 "id": player["accountId"],
                                 "seat": seat,
                                 "nickname": player["nickname"],
-                                "finalPoint": result["partPoint1"],
+                                "finalPoint": final_point,
                             }
                         )
                         break
             else:
                 for player in head["accounts"]:
                     if "seat" not in player:
+                        final_point = (
+                            result["partPoint1"] if "partPoint1" in result else 0
+                        )
                         player_ranks.append(
                             {
                                 "id": player["accountId"],
                                 "seat": 0,
                                 "nickname": player["nickname"],
-                                "finalPoint": result["partPoint1"],
+                                "finalPoint": final_point,
                             }
                         )
                         break

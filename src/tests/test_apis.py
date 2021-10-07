@@ -148,6 +148,51 @@ def test_uuid_3(client: FlaskClient):
     assert json_data.items() == expected_data.items()
 
 
+def test_uuid_4(client: FlaskClient):
+    rv = client.get("/uuid/211006-1701b755-1439-460a-8c5d-28aedbcc8651")
+    json_data = rv.get_json()
+    expected_data = {
+        "endTime": 1633525844,
+        "noted_yakus": [],
+        "ranks": [
+            {
+                "finalPoint": 77000,
+                "id": 118305315,
+                "nickname": "Boob",
+                "rank": 1,
+                "seat": 3,
+            },
+            {
+                "finalPoint": 11800,
+                "id": 121540433,
+                "nickname": "HiPerf_Roh",
+                "rank": 2,
+                "seat": 2,
+            },
+            {
+                "finalPoint": 11200,
+                "id": 75273220,
+                "nickname": "天使",
+                "rank": 3,
+                "seat": 1,
+            },
+            {
+                "finalPoint": 0,
+                "id": 74492104,
+                "nickname": "Helith",
+                "rank": 4,
+                "seat": 0,
+            },
+        ],
+        "result": "OK",
+        "roomId": 16509,
+        "startTime": 1633523610,
+        "uuid": "211006-1701b755-1439-460a-8c5d-28aedbcc8651",
+    }
+    assert json_data is not None
+    assert json_data.items() == expected_data.items()
+
+
 def test_uuid_noted_yakus(client: FlaskClient):
     rv = client.get("/uuid/210807-3a956b38-1df3-48db-b06e-9f1b0a28ba48")
     json_data = rv.get_json()
