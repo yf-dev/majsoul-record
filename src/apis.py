@@ -207,8 +207,8 @@ async def route_uuid_csv(uuid: str) -> "ResponseReturnValue":
     for rank in result["ranks"]:
         rows.append(rank["nickname"])
         rows.append(rank["finalPoint"])
+    rows.append(result["roomId"])
     if result["noted_yakus"]:
-        rows.append("")
         rows.append(
             "/".join(
                 f'{noted_yaku["player"]["rank"]}위 {noted_yaku["yaku"]}'

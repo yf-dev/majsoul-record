@@ -497,7 +497,7 @@ def test_uuid_csv(client: FlaskClient):
     rv = client.get("/uuid-csv/210525-e9e55c55-f25c-497c-a435-7e29a6df2483")
     csv_data = rv.data.decode("utf-8")
     expected_data = (
-        "2021년 5월 25일,sniper131,36400,memoru,30600,SiraB,29100,Pain,3900\r\n"
+        "2021년 5월 25일,sniper131,36400,memoru,30600,SiraB,29100,Pain,3900,20496\r\n"
     )
     assert csv_data == expected_data
 
@@ -505,7 +505,7 @@ def test_uuid_csv(client: FlaskClient):
 def test_uuid_csv_noted_yakus(client: FlaskClient):
     rv = client.get("/uuid-csv/210807-3a956b38-1df3-48db-b06e-9f1b0a28ba48")
     csv_data = rv.data.decode("utf-8")
-    expected_data = "2021년 8월 7일,AI123123123,49300,ice_Mocha,33600,BlackSeed,30300,MightyMoon,-13200,,1위 국사무쌍\r\n"
+    expected_data = "2021년 8월 7일,AI123123123,49300,ice_Mocha,33600,BlackSeed,30300,MightyMoon,-13200,20481,1위 국사무쌍\r\n"
     assert csv_data == expected_data
 
 
