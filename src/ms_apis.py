@@ -37,7 +37,7 @@ async def connect() -> t.Tuple[Lobby, MSRPCChannel, str]:
 
             servers = servers["servers"]
             server = random.choice(servers)
-            endpoint = "wss://{}/".format(server)
+            endpoint = "wss://{}/gateway".format(server)
 
     logging.info(f"Chosen endpoint: {endpoint}")
     channel = MSRPCChannel(endpoint)
