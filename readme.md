@@ -6,9 +6,9 @@ Simple majsoul record parser
 ### Usage
 
 ```
-https://majsoul-record.herokuapp.com/uuid/<uuid>
-https://majsoul-record.herokuapp.com/uuid-csv/<uuid>
-https://majsoul-record.herokuapp.com/uuid-raw/<uuid>
+http://hostname/uuid/<uuid>
+http://hostname/uuid-csv/<uuid>
+http://hostname/uuid-raw/<uuid>
 ```
 
 ### Development
