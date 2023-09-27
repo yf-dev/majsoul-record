@@ -15,6 +15,9 @@ from google.protobuf.json_format import MessageToJson
 
 MS_HOST = os.environ["MAJSOUL_HOST"]
 
+class MaintenanceError(Exception):
+    pass
+
 
 async def connect() -> t.Tuple[Lobby, MSRPCChannel, str]:
     async with aiohttp.ClientSession() as session:
@@ -34,6 +37,12 @@ async def connect() -> t.Tuple[Lobby, MSRPCChannel, str]:
         async with session.get(url + "?service=ws-gateway&protocol=ws&ssl=true") as res:
             servers = await res.json()
             logging.info(f"Available servers: {servers}")
+
+            if "servers" not in servers:
+                logging.error("No servers available")
+                if "maintenance" in servers:
+                    raise MaintenanceError(servers["maintenance"].get("message", ""))
+                raise Exception("Unknown error")
 
             servers = servers["servers"]
             server = random.choice(servers)
@@ -128,7 +137,11 @@ async def get_log(uuid: str) -> t.Dict:
     if not username or not password:
         logging.error("Username or password cant be empty")
 
-    lobby, channel, client_version = await connect()
+    try:
+        lobby, channel, client_version = await connect()
+    except MaintenanceError as e:
+        return {"error": f"Server is under maintenance: {str(e)}"}
+
 
     await login(lobby, username, password, client_version)
 
